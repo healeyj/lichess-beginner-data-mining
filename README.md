@@ -1,0 +1,2 @@
+# lichess-beginner-data-mining
+
