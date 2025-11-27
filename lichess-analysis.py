@@ -6,16 +6,23 @@ from collections import defaultdict
 import os
 import time
 
+# CRITICAL
+# TODO: get monthly average glicko score in addition to min, max, and number of games played
+# TODO: get earliest and latest (beginning of the month, end of the month) glicko scores for each of the players
+    # maybe we can see improvement in just 1 month correlated to number of games played?
+# IMPORTANT
 # TODO: throw out players that had any game above the 1200 skill cap in january
+# NICE TO HAVE
 # TODO: run and save full 100k players, then from that output file sample 5k players (save time moving forward)
+# TODO: save list of 5k players as a hashmap, so that it is efficient to locate them and rerun the analysis for february and beyond
 
 # --- 1. CONFIGURATION ---
 ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst' # Jan24 datafile
-OUTPUT_FILE_PATH = 'target_players_stats_rapid_quick_pairing_2024_january.csv'
-TARGET_TIMECONTROL = "600+0"
-ALTERNATE_TIMECONTROL_1 = "600+5"
-ALTERNATE_TIMECONTROL_2 = "900+10"
-MAX_RATING = 1000 # Glicko-2 rating
+OUTPUT_FILE_PATH = 'target_players_stats_rapid_quick_pairing_2024_january_1.csv'
+TARGET_TIMECONTROL = "600+0" #10m
+ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
+ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
+MAX_RATING = 1000 # Glicko-2 rating, where new players start at 1500
 MIN_GAMES_JANUARY = 15 # january grinders to find initial sample
                         # but for rest of the year, must play at least 1 game every 2 months
                         # and at least 50 or 100 games total
@@ -92,8 +99,8 @@ def run_player_filter_and_sampling():
                         tc = current_game.get('TimeControl')
                         if tc in (TARGET_TIMECONTROL, ALTERNATE_TIMECONTROL_1, ALTERNATE_TIMECONTROL_2):
                             try:
-                                white_rating = int(current_game.get('WhiteRating', '0'))
-                                black_rating = int(current_game.get('BlackRating', '0'))
+                                white_rating = int(current_game.get('WhiteElo', '0'))
+                                black_rating = int(current_game.get('BlackElo', '0'))
                             except ValueError:
                                 white_rating, black_rating = 0, 0 
 
@@ -150,8 +157,8 @@ def run_player_filter_and_sampling():
                 tc = current_game.get('TimeControl')
                 if tc in (TARGET_TIMECONTROL, ALTERNATE_TIMECONTROL_1, ALTERNATE_TIMECONTROL_2):
                     try:
-                        white_rating = int(current_game.get('WhiteRating', '0'))
-                        black_rating = int(current_game.get('BlackRating', '0'))
+                        white_rating = int(current_game.get('WhiteElo', '0'))
+                        black_rating = int(current_game.get('BlackElo', '0'))
                     except ValueError:
                         white_rating, black_rating = 0, 0 
 
