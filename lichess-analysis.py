@@ -8,36 +8,9 @@ import time
 
 # TODO: throw out players that had any game above the 1200 skill cap in january
 # TODO: run and save full 100k players, then from that output file sample 5k players (save time moving forward)
-# TODO: commit to github
-
-'''
-progress report presentation outline:
-- is there a correlation between number of chess games played and skill rating improvement?
-    - do you need to study to git good, or is grinding games enough, at least up to a certain skill level?
-    - need a lot of data to prove this: hundreds of players, hundreds of games over time
-        - inspired by a research paper that showed game length did not correlate with improvement
-    - i'm a newbie at chess so these concepts/communities are new to me
-    - i had more ambitious, technical questions but narrowed focus due to limitations
-- explored various datasets:
-    - lumbrasgigabase (big scrapes, but proprietary format designed for game analysis)
-    - kaggle lichess.org extract dataset (too small)
-    - chess.com public api (request limits)
-    - lichess.org public monthly extracts (each 30gb file contains ~100million games)
-- vibecode with gemini
-    - read game headers/metadata only: player names, player ratings, number of games played
-    - limit scope to January 2024, 15min rapid games, <1200 glicko rating (beginner), new year's grinders (>10 games that month)
-    - i found 1400 players that meet criteria
-    - it took 20 minutes to extract this from the January dataset
-    - next datasets should go a lot faster now that i have a playerlist
-- up next
-    - track these players through 2024 monthly datasets to observe ratings over time
-    - attrition will reduce sample size, may need to adjust filters to compensate
-    - will the glicko-2 rating system interfere with my analysis?
-    - adjust research question/strategy as necessary
-'''
 
 # --- 1. CONFIGURATION ---
-ZST_FILE_PATH = 'lichess_db_standard_rated_2024-01.pgn.zst'
+ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst' # Jan24 datafile
 OUTPUT_FILE_PATH = 'target_players_stats_rapid_quick_pairing_2024_january.csv'
 TARGET_TIMECONTROL = "600+0"
 ALTERNATE_TIMECONTROL_1 = "600+5"
