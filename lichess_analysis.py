@@ -7,10 +7,10 @@ import os
 import time
 from datetime import datetime # 1. NEW: Import datetime for timestamp comparison
 
-# CRITICAL (Implemented)
-# get monthly average glicko score in addition to min, max, and number of games played
-# get earliest and latest (beginning of the month, end of the month) glicko scores for each of the players
-# maybe we can see improvement in just 1 month correlated to number of games played?
+# CRITICAL
+# DONE: get monthly average glicko score in addition to min, max, and number of games played
+# DONE: get earliest and latest (beginning of the month, end of the month) glicko scores for each of the players
+# TODO: analyze results
 # IMPORTANT
 # TODO: throw out players that had any game above the 1200 skill cap in january
 # NICE TO HAVE
