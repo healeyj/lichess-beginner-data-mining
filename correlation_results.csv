@@ -1,8 +1,0 @@
-Metric,Value,Interpretation,Games_Played,Player_Count
-Pearson R (Linear Correlation),0.0785,Strength of linear relationship between games played and rating gain.,,
-P-Value,0.0000,P-Value < 0.05 indicates the correlation is statistically significant.,,
-15-30 Games,-25.5232,Average rating change within defined game volume groups.,20.5249,2246.0000
-31-60 Games,-17.4735,Average rating change within defined game volume groups.,41.4940,1413.0000
-61-100 Games,-12.3220,Average rating change within defined game volume groups.,76.5119,674.0000
-101-200 Games,0.7976,Average rating change within defined game volume groups.,135.7996,509.0000
-201+ Games,28.5506,Average rating change within defined game volume groups.,293.5443,158.0000

@@ -9,14 +9,14 @@ import os
 import io
 
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/target_players_stats_rapid_quick_pairing_2024_january_1.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/games_vs_rating_change.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_games_vs_rating_change.png'
 
 # Define bins for the grouped analysis (Suggestion 3)
 # These bins should start at MIN_GAMES_JANUARY (e.g., 15)
-GAME_BINS = [15, 30, 60, 100, 200, np.inf]
-BIN_LABELS = ['15-30 Games', '31-60 Games', '61-100 Games', '101-200 Games', '201+ Games']
+GAME_BINS = [15, 50, 100, 150, 200, 250, 300, 350, 400, np.inf]
+BIN_LABELS = ['15-50 Games', '51-100 Games', '101-150 Games', '151-200 Games', '201-250 Games', '251-300 Games', '301-350 Games', '350-400 Games', '401+ Games']
 
 # --- Helper Functions ---
 
@@ -131,6 +131,9 @@ def run_correlation_analysis(df: pd.DataFrame):
         scatter_kws={'alpha': 0.3, 's': 15}, 
         line_kws={'color': '#ff4500', 'linewidth': 2}
     )
+
+    # Set X-axis limits: starts at 15 (your minimum filter) and ends at 400 (to cut outliers)
+    plt.xlim(15, 400) 
     
     plt.title(
         f'Games Played vs. Rating Change (Glicko-2) | N={len(df)} Players\nPearson r: {correlation:.4f}', 

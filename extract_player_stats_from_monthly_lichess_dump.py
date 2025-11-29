@@ -19,11 +19,11 @@ from datetime import datetime # 1. NEW: Import datetime for timestamp comparison
 
 # --- 1. CONFIGURATION ---
 ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst' # Jan24 datafile
-OUTPUT_FILE_PATH = '/lichess-beginner-data-mining/target_players_stats_rapid_quick_pairing_2024_january_1.csv'
+OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/rapid_player_stats_max_rating_1600_2024_01.csv'
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
-MAX_RATING = 1000 # Glicko-2 rating, where 1500 is players' initially assigned rating
+MAX_RATING = 1600 # Glicko-2 rating, where 1500 is players' initially assigned rating
 MIN_GAMES_JANUARY = 15 # january grinders to find initial sample
                         # but for rest of the year, must play at least 1 game every 2 months
                         # and at least 50 or 100 games total
