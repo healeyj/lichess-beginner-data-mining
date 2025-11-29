@@ -1,5 +1,3 @@
-#/chessvenv/bin/python -m pip install scipy #ect.
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -9,9 +7,10 @@ import os
 import io
 
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_games_vs_rating_change.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_correlation_rating_gain_by_bin.png'
 
 # Define bins for the grouped analysis (Suggestion 3)
 # These bins should start at MIN_GAMES_JANUARY (e.g., 15)
@@ -151,6 +150,44 @@ def run_correlation_analysis(df: pd.DataFrame):
     except Exception as e:
         print(f"Error saving plot: {e}")
         
+    plt.close()
+
+    # ----------------------------------------------------
+    # ANALYSIS METHOD 4: BAR PLOT OF GROUPED AVERAGES (NEW)
+    # ----------------------------------------------------
+    
+    plt.figure(figsize=(12, 6))
+    # Use the grouped_analysis DataFrame created in METHOD 3
+    sns.barplot(
+        x='Games_Played_Group', 
+        y='Average_Rating_Gain', 
+        data=grouped_analysis,
+        palette='viridis' # A professional and distinct color palette
+    )
+    
+    # Add labels for the average gain on top of the bars
+    for index, row in grouped_analysis.iterrows():
+        plt.text(
+            index, 
+            row['Average_Rating_Gain'] + 2, # Offset slightly above the bar
+            f"{row['Average_Rating_Gain']:.1f}", 
+            color='black', 
+            ha="center"
+        )
+        
+    plt.title('Average Rating Change by Games Played Volume (January)', fontsize=14)
+    plt.xlabel('Games Played Group (Volume)')
+    plt.ylabel('Average Glicko-2 Rating Gain (Latest - Earliest)')
+    plt.xticks(rotation=45, ha='right')
+    plt.axhline(0, color='red', linestyle='--', linewidth=1) # Zero-gain line
+    plt.grid(axis='y', linestyle=':', alpha=0.6)
+    plt.tight_layout()
+    
+    try:
+        plt.savefig(OUTPUT_BIN_PLOT_PATH)
+        print(f"✅ Grouped analysis visualization saved to: {OUTPUT_BIN_PLOT_PATH}")
+    except Exception as e:
+        print(f"Error saving grouped plot: {e}")
     plt.close()
 
 
