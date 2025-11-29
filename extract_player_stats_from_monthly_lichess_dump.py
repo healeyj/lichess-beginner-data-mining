@@ -5,21 +5,34 @@ import random
 from collections import defaultdict
 import os
 import time
-from datetime import datetime # 1. NEW: Import datetime for timestamp comparison
+from datetime import datetime
+
+# Note from Lichess on Glicko-2 ratings: https://lichess.org/page/rating-systems
 
 # CRITICAL
 # DONE: get monthly average glicko score in addition to min, max, and number of games played
 # DONE: get earliest and latest (beginning of the month, end of the month) glicko scores for each of the players
-# TODO: analyze results
+# DONE: analyze initial results
+# TODO: for each player, calculate spread of days played (latest_time - earliest_time)
+#           then update analyze to get the average spread. this way we can verify that
+#           it's something reasonable, like at least 10-15. less than that may be 
+#           cocnerning because it's probably not realistic to expect improvement in 
+#           a week or less, regardless of how many games were played
+#
 # IMPORTANT
-# TODO: throw out players that had any game above the 1200 skill cap in january
+# TODO: throw out disconnects
+# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating/rating cap (separate results for ratings 0-1000, 1001-1600)
+# TODO: throw out players that had any game outside their rating range
+#               
 # NICE TO HAVE
 # TODO: run and save full 100k players, then from that output file sample 5k players (save time moving forward)
 # TODO: save list of 5k players as a hashmap, so that it is efficient to locate them and rerun the analysis for february and beyond
+# TODO: analyze each time control separately
+# TODO: analyze classical time controls (60m games)s
 
-# --- 1. CONFIGURATION ---
+# --- CONFIG ---
 ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst' # Jan24 datafile
-OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/rapid_player_stats_max_rating_1600_2024_01.csv'
+OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_results_FIXME.csv'
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
@@ -29,7 +42,7 @@ MIN_GAMES_JANUARY = 15 # january grinders to find initial sample
                         # and at least 50 or 100 games total
 TARGET_SAMPLE_SIZE = 5000
 
-# --- 2. OPTIMIZED UTILITIES ---
+# --- REGEX PGN PARSING HELPERS ---
 TAG_RE = re.compile(r'^\[(\w+)\s+"(.+)"\]$')
 EVENT_RE = re.compile(r'^\[Event\s+".+"\]$')
 
@@ -60,7 +73,7 @@ def parse_pgn_timestamp(date_str, time_str):
         return None
 
 
-# --- 3. MAIN PROCESSING FUNCTION ---
+# MAIN PROCESSING FUNCTION ---
 
 def run_player_filter_and_sampling():
     """
@@ -74,7 +87,6 @@ def run_player_filter_and_sampling():
 
     print(f"Starting rapid scan of {ZST_FILE_PATH}...")
     
-    # 2. NEW: Updated structure to track sum/count for average, and earliest/latest ratings/times
     player_stats = defaultdict(lambda: {
         'games': 0, 
         'min_rating': float('inf'), 
@@ -116,11 +128,11 @@ def run_player_filter_and_sampling():
                             white_rating = None
                             black_rating = None
                             
-                            # 3. USE CORRECT LICHESS PGN TAGS: WhiteElo and BlackElo
+                            # Lichess PGN tags are mislabeled since they use Glicko-2, legacies die hard
                             white_rating_str = current_game.get('WhiteElo') 
                             black_rating_str = current_game.get('BlackElo')
                             
-                            # 3. NEW: Extract Date/Time for earliest/latest tracking
+                            # Extract Date/Time for earliest/latest tracking
                             date_str = current_game.get('UTCDate')
                             time_str = current_game.get('UTCTime')
                             game_dt = parse_pgn_timestamp(date_str, time_str)
@@ -194,7 +206,7 @@ def run_player_filter_and_sampling():
                         tag_name, tag_value = match.groups()
                         current_game[tag_name] = tag_value
 
-                # 2. Other header tags (only process if a game has started)
+                # Other header tags (only process if a game has started)
                 elif line.startswith('['):
                     match = TAG_RE.match(line)
                     if match:
@@ -208,7 +220,6 @@ def run_player_filter_and_sampling():
                     
                     print(f"Processed ~{game_count:,} games in {time_str} (Line: {line_number:,})...")
 
-            # --- CRITICAL: PROCESS THE LAST GAME IN THE FILE ---
             if current_game:
                 game_count += 1
                 tc = current_game.get('TimeControl')
@@ -272,8 +283,8 @@ def run_player_filter_and_sampling():
                                 stats['latest_time'] = game_dt
                                 stats['latest_rating'] = black_rating
 
+    # Error handling
     except Exception as e:
-        # Error handling block remains the same
         print("\n" + "="*50)
         print("🚨 **FATAL ERROR DETECTED** 🚨")
         print(f"Error Type: {type(e).__name__}")
@@ -284,7 +295,7 @@ def run_player_filter_and_sampling():
         print("="*50)
         return
 
-    # --- 4. AGGREGATION AND SAMPLING ---
+    # --- AGGREGATION AND SAMPLING ---
     end_time = time.time()
     total_elapsed = end_time - start_time
     total_time_str = format_time(total_elapsed)
@@ -312,7 +323,6 @@ def run_player_filter_and_sampling():
         print("Note: Fewer active players found than the target sample size. Using all of them.")
 
     # Prepare data for output file
-    # 5. NEW: Updated Header with Average, Earliest, and Latest Ratings
     output_lines = [
         "Username,Total_Games_January,Min_RATING_January,Max_RATING_January,Average_RATING,Earliest_RATING,Latest_RATING"
     ]
@@ -329,7 +339,7 @@ def run_player_filter_and_sampling():
         earliest_rating = stats['earliest_rating']
         latest_rating = stats['latest_rating']
 
-        # 5. NEW: Format line with all new data points
+        # Format line with all new data points
         line = (f"{username},{stats['games']},{min_rating},{max_rating},{average_rating},"
                 f"{earliest_rating},{latest_rating}")
         output_lines.append(line)
