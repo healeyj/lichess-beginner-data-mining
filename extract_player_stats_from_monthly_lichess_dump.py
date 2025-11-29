@@ -13,19 +13,20 @@ from datetime import datetime
 # DONE: get monthly average glicko score in addition to min, max, and number of games played
 # DONE: get earliest and latest (beginning of the month, end of the month) glicko scores for each of the players
 # DONE: analyze initial results
+# TODO: check statisitical significance of bar chart
 # TODO: for each player, calculate spread of days played (latest_time - earliest_time)
-#           then update analyze to get the average spread. this way we can verify that
-#           it's something reasonable, like at least 10-15. less than that may be 
-#           cocnerning because it's probably not realistic to expect improvement in 
-#           a week or less, regardless of how many games were played
+#           then update analysis to get the total average spread and spread by bin.
+#           this way we can verify that it's something reasonable, like at least 10-15. 
+#           less than that may be cocnerning because it's probably not realistic to expect
+#           improvement in a week or less, regardless of how many games were played
 #
 # IMPORTANT
-# TODO: throw out disconnects
 # TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating/rating cap (separate results for ratings 0-1000, 1001-1600)
+# TODO: ignore games that end in a disconnect or abandon (but keep games that end in surrender)
 # TODO: throw out players that had any game outside their rating range
 #               
 # NICE TO HAVE
-# TODO: run and save full 100k players, then from that output file sample 5k players (save time moving forward)
+# TODO: run and save full set of beginner-level players, then from that output file sample 5k players (save time moving forward)
 # TODO: save list of 5k players as a hashmap, so that it is efficient to locate them and rerun the analysis for february and beyond
 # TODO: analyze each time control separately
 # TODO: analyze classical time controls (60m games)s
