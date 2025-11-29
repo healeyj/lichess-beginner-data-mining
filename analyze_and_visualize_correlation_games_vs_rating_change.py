@@ -153,42 +153,87 @@ def run_correlation_analysis(df: pd.DataFrame):
     plt.close()
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 4: BAR PLOT OF GROUPED AVERAGES (NEW)
+    # ANALYSIS METHOD 4: BAR PLOT OF GROUPED AVERAGES (DUAL-AXIS)
     # ----------------------------------------------------
     
-    plt.figure(figsize=(12, 6))
-    # Use the grouped_analysis DataFrame created in METHOD 3
+    # Start a new figure and the primary axis (for Rating Gain bars)
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+
+    # Bar plot for Average Rating Gain (Left Axis)
     sns.barplot(
         x='Games_Played_Group', 
         y='Average_Rating_Gain', 
         data=grouped_analysis,
-        palette='viridis' # A professional and distinct color palette
+        palette='viridis', 
+        ax=ax1,
+        # label='Avg Rating Gain' # Labels will be added using fig.legend
     )
+    
+    # Set labels for the primary axis
+    ax1.set_title('Average Rating Change and Sample Size by Games Played Volume (January)', fontsize=14)
+    ax1.set_xlabel('Games Played Group (Volume)')
+    ax1.set_ylabel('Average Glicko-2 Rating Gain (Latest - Earliest)', color=sns.color_palette('viridis')[0])
+    ax1.tick_params(axis='y', labelcolor=sns.color_palette('viridis')[0])
+    ax1.axhline(0, color='red', linestyle='--', linewidth=1) # Zero-gain line
+    ax1.grid(axis='y', linestyle=':', alpha=0.6)
+
+    # Rotate x-axis labels for readability
+    ax1.set_xticklabels(grouped_analysis['Games_Played_Group'], rotation=45, ha='right')
+
+    # Create a secondary axis for Player Count (Line plot, Right Axis)
+    ax2 = ax1.twinx() 
+    
+    # Line plot for Player Count (Right Axis)
+    line_plot = ax2.plot(
+        grouped_analysis['Games_Played_Group'], 
+        grouped_analysis['Player_Count'], 
+        color='blue', 
+        marker='o',
+        linewidth=2,
+        label='Player Count (N)'
+    )
+    
+    # Set labels for the secondary axis
+    ax2.set_ylabel('Player Count (N)', color='blue')
+    ax2.tick_params(axis='y', labelcolor='blue')
+    ax2.grid(False) # Turn off grid for the secondary axis to keep it clean
+
+    # Add count labels for the line markers (N)
+    for index, row in grouped_analysis.iterrows():
+        ax2.text(
+            index, 
+            row['Player_Count'] * 1.05, # Offset slightly above the marker
+            f"N={row['Player_Count']}", 
+            color='blue', 
+            ha="center"
+        )
     
     # Add labels for the average gain on top of the bars
     for index, row in grouped_analysis.iterrows():
-        plt.text(
+        # Dynamic offset based on the maximum y-limit for better positioning
+        offset = ax1.get_ylim()[1] * 0.02
+        y_pos = row['Average_Rating_Gain'] + offset
+        
+        ax1.text(
             index, 
-            row['Average_Rating_Gain'] + 2, # Offset slightly above the bar
+            y_pos, 
             f"{row['Average_Rating_Gain']:.1f}", 
             color='black', 
             ha="center"
         )
         
-    plt.title('Average Rating Change by Games Played Volume (January)', fontsize=14)
-    plt.xlabel('Games Played Group (Volume)')
-    plt.ylabel('Average Glicko-2 Rating Gain (Latest - Earliest)')
-    plt.xticks(rotation=45, ha='right')
-    plt.axhline(0, color='red', linestyle='--', linewidth=1) # Zero-gain line
-    plt.grid(axis='y', linestyle=':', alpha=0.6)
-    plt.tight_layout()
+    # Combine legends from both axes
+    bar_legend = [plt.Rectangle((0,0),1,1, fc=sns.color_palette('viridis')[0])]
+    ax1.legend(bar_legend + line_plot, ['Avg Rating Gain', 'Player Count (N)'], loc='upper center')
+    
+    fig.tight_layout() # Ensures everything fits
     
     try:
-        plt.savefig(OUTPUT_BIN_PLOT_PATH)
+        fig.savefig(OUTPUT_BIN_PLOT_PATH)
         print(f"✅ Grouped analysis visualization saved to: {OUTPUT_BIN_PLOT_PATH}")
     except Exception as e:
         print(f"Error saving grouped plot: {e}")
-    plt.close()
+    plt.close(fig)
 
 
 if __name__ == '__main__':
