@@ -8,28 +8,26 @@ import time
 from datetime import datetime
 
 # Note from Lichess on Glicko-2 ratings: https://lichess.org/page/rating-systems
+# i am counting games that end in disconnect or abandon since they affect rating over time anyways, but i could see an argument against this
+# sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
 
 # CRITICAL
-# DONE: get monthly average glicko score in addition to min, max, and number of games played
-# DONE: get earliest and latest (beginning of the month, end of the month) glicko scores for each of the players
-# DONE: analyze initial results
-# TODO: check statisitical significance of bar chart
+# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating. set the intial MIN_RATING to 0 and MAX_RATING to 800
+# TODO: rerun with 900+10 rapid games only
+#
+# IMPORTANT
 # TODO: for each player, calculate spread of days played (latest_time - earliest_time)
 #           then update analysis to get the total average spread and spread by bin.
 #           this way we can verify that it's something reasonable, like at least 10-15. 
 #           less than that may be cocnerning because it's probably not realistic to expect
 #           improvement in a week or less, regardless of how many games were played
-#
-# IMPORTANT
-# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating/rating cap (separate results for ratings 0-1000, 1001-1600)
-# TODO: ignore games that end in a disconnect or abandon (but keep games that end in surrender)
-# TODO: throw out players that had any game outside their rating range
 #               
 # NICE TO HAVE
 # TODO: run and save full set of beginner-level players, then from that output file sample 5k players (save time moving forward)
 # TODO: save list of 5k players as a hashmap, so that it is efficient to locate them and rerun the analysis for february and beyond
 # TODO: analyze each time control separately
 # TODO: analyze classical time controls (60m games)s
+# TODO: throw out players that had any game outside their rating range
 
 # --- CONFIG ---
 ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst' # Jan24 datafile
