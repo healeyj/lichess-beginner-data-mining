@@ -5,55 +5,26 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import os
 import io
+import re
+
+# TODO: add visualization of pearson correlation of bins
+
 
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_correlation_games_vs_rating_change.png'
-OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_correlation_rating_gain_by_bin.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_rating_gain_by_bin.png'
+
+MAX_RATING_FILTER = 1000
+
 
 # Define bins for the grouped analysis (Suggestion 3)
 # These bins should start at MIN_GAMES_JANUARY (e.g., 15)
 GAME_BINS = [15, 50, 100, 150, 200, 250, 300, 350, 400, np.inf]
 BIN_LABELS = ['15-50 Games', '51-100 Games', '101-150 Games', '151-200 Games', '201-250 Games', '251-300 Games', '301-350 Games', '350-400 Games', '401+ Games']
 
-# --- Helper Functions ---
-
-def create_mock_data(filepath):
-    """Creates a mock CSV file for demonstration if the actual file is missing."""
-    print(f"ALERT: Input file '{filepath}' not found. Creating mock data for analysis.")
-    
-    # Generate 500 rows of synthetic data
-    n_rows = 500
-    
-    # Games played (highly skewed towards lower numbers)
-    games = np.random.lognormal(mean=3.5, sigma=0.8, size=n_rows)
-    games = np.clip(games.astype(int), 15, 300) # Ensure min 15 games
-    
-    # Base Rating (centered around 800-900 for low-rated players)
-    base_rating = np.random.normal(loc=850, scale=100, size=n_rows).astype(int)
-    
-    # Rating Change: Introduce a weak positive correlation (Rating_Change = 0.2 * Games + Noise)
-    rating_gain_base = 0.2 * games
-    noise = np.random.normal(loc=15, scale=20, size=n_rows)
-    rating_change = (rating_gain_base + noise).astype(int)
-    
-    # Earliest/Latest RATING generation
-    latest_rating = base_rating + rating_change
-    earliest_rating = base_rating
-    
-    data = pd.DataFrame({
-        'Username': [f'Player{i:04d}' for i in range(n_rows)],
-        'Total_Games_January': games,
-        'Min_RATING_January': np.clip(earliest_rating - 50, 500, 1000),
-        'Max_RATING_January': np.clip(latest_rating + 50, 500, 1000),
-        'Average_RATING': (earliest_rating + latest_rating) / 2,
-        'Earliest_RATING': earliest_rating,
-        'Latest_RATING': latest_rating
-    })
-    
-    data.to_csv(filepath, index=False)
-    return data
+# --- Analysis Function ---
 
 def run_correlation_analysis(df: pd.DataFrame):
     """
@@ -65,7 +36,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     df['Rating_Change'] = df['Latest_RATING'] - df['Earliest_RATING']
     
     # ----------------------------------------------------
-    # ANALYSIS METHOD 1: PEARSON CORRELATION (Linear Test)
+    # ANALYSIS METHOD 1: PEARSON CORRELATION (Linear Test on Raw Data)
     # ----------------------------------------------------
     games = df['Total_Games_January']
     rating_change = df['Rating_Change']
@@ -75,15 +46,15 @@ def run_correlation_analysis(df: pd.DataFrame):
 
     # Convert results to a DataFrame for CSV output
     results_df = pd.DataFrame({
-        'Metric': ['Pearson R (Linear Correlation)', 'P-Value'],
+        'Metric': ['Pearson R (Linear Correlation on Raw Data)', 'P-Value'],
         'Value': [correlation, p_value],
         'Interpretation': [
-            f'Strength of linear relationship between games played and rating gain.',
+            f'Strength of linear relationship between games played and rating gain on the full dataset.',
             f'P-Value < 0.05 indicates the correlation is statistically significant.'
         ]
     })
     
-    print(f"Pearson Correlation (r): {correlation:.4f} (P-Value: {p_value:.4f})")
+    print(f"Raw Pearson Correlation (r): {correlation:.4f} (P-Value: {p_value:.4f})")
 
 
     # ----------------------------------------------------
@@ -110,6 +81,31 @@ def run_correlation_analysis(df: pd.DataFrame):
     
     results_df = pd.concat([results_df, grouped_summary], ignore_index=True)
 
+
+    # ----------------------------------------------------
+    # ANALYSIS METHOD 5: GROUPED PEARSON CORRELATION (Correlate Bin Averages)
+    # ----------------------------------------------------
+    
+    # Correlate the average games played per bin against the average rating gain per bin
+    # This measures the linear trend of the group means visible in the bar chart.
+    avg_games = grouped_analysis['Average_Games_Played']
+    avg_gain = grouped_analysis['Average_Rating_Gain']
+    
+    # Calculate Pearson's r and the p-value on the grouped data
+    grouped_correlation, grouped_p_value = pearsonr(avg_games, avg_gain)
+
+    print("\n--- Grouped Correlation Analysis (Bin Averages) ---")
+    print(f"Grouped Pearson Correlation (r): {grouped_correlation:.4f} (P-Value: {grouped_p_value:.4f})")
+    
+    # Append results to the main results DataFrame
+    grouped_corr_results = pd.DataFrame([
+        {'Metric': 'Grouped Pearson R (Bin Averages)', 'Value': grouped_correlation, 'Interpretation': 'Strength of linear relationship between average games played and average rating gain across the binned groups.'},
+        {'Metric': 'Grouped P-Value', 'Value': grouped_p_value, 'Interpretation': 'P-Value < 0.05 indicates the grouped correlation is statistically significant.'},
+    ])
+    
+    results_df = pd.concat([results_df, grouped_corr_results], ignore_index=True)
+
+
     # Save the results to CSV
     results_df.to_csv(OUTPUT_CSV_PATH, index=False, float_format='%.4f')
     print(f"\n✅ Analysis results saved to: {OUTPUT_CSV_PATH}")
@@ -134,10 +130,11 @@ def run_correlation_analysis(df: pd.DataFrame):
     # Set X-axis limits: starts at 15 (your minimum filter) and ends at 400 (to cut outliers)
     plt.xlim(15, 400) 
     
+    # --- DYNAMICALLY UPDATED SCATTER PLOT TITLE ---
     plt.title(
-        f'Games Played vs. Rating Change (Glicko-2) | N={len(df)} Players\nPearson r: {correlation:.4f}', 
+        f'Games Played vs. Rating Change (Beginner Group, Max Rating < {MAX_RATING_FILTER}) | N={len(df)} Players\nRaw Pearson r: {correlation:.4f}', 
         fontsize=14
-    )
+    )    
     plt.xlabel('Total Games Played in January (X)')
     plt.ylabel('Rating Change (Latest RATING - Earliest RATING) (Y)')
     plt.axhline(0, color='gray', linestyle='--', linewidth=1) # Zero-gain line
@@ -169,8 +166,10 @@ def run_correlation_analysis(df: pd.DataFrame):
         # label='Avg Rating Gain' # Labels will be added using fig.legend
     )
     
-    # Set labels for the primary axis
-    ax1.set_title('Average Rating Change and Sample Size by Games Played Volume (January)', fontsize=14)
+    # --- DYNAMICALLY UPDATED BAR PLOT TITLE ---
+    ax1.set_title(f'Average Rating Change and Sample Size by Games Played Volume (Max Rating < {MAX_RATING_FILTER})', fontsize=14)
+    # ------------------------------
+    
     ax1.set_xlabel('Games Played Group (Volume)')
     ax1.set_ylabel('Average Glicko-2 Rating Gain (Latest - Earliest)', color=sns.color_palette('viridis')[0])
     ax1.tick_params(axis='y', labelcolor=sns.color_palette('viridis')[0])
