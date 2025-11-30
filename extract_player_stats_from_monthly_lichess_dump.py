@@ -12,10 +12,11 @@ from datetime import datetime
 # sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
 
 # CRITICAL
-# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating. set the intial MIN_RATING to 0 and MAX_RATING to 800
-# TODO: rerun with 900+10 rapid games only
+# TODO: trim extract to include rapid games only
 #
 # IMPORTANT
+# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating. set the intial MIN_RATING to 0 and MAX_RATING to 800
+# TODO: rerun with 900+10 rapid games only
 # TODO: for each player, calculate spread of days played (latest_time - earliest_time)
 #           then update analysis to get the total average spread and spread by bin.
 #           this way we can verify that it's something reasonable, like at least 10-15. 
@@ -30,8 +31,9 @@ from datetime import datetime
 # TODO: throw out players that had any game outside their rating range
 
 # --- CONFIG ---
-ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst' # Jan24 datafile
-OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_results_FIXME.csv'
+# '/Users/healeyj/Desktop/lichess-extracts/
+ZST_FILE_PATH = 'lichess-beginner-data-mining/lichess_db_standard_rated_2024-01_900+10_ONLY.pgn.zst' # Jan24 datafile
+OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY_players_max_rating_1600_results.csv'
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s

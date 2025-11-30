@@ -11,12 +11,12 @@ import re
 
 
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_games_vs_rating_change.png'
-OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1000_correlation_rating_gain_by_bin.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY_players_max_rating_1600_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY__players_max_rating_1600_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY__players_max_rating_1600_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY__players_max_rating_1600_correlation_rating_gain_by_bin.png'
 
-MAX_RATING_FILTER = 1000
+MAX_RATING_FILTER = 1600
 
 
 # Define bins for the grouped analysis (Suggestion 3)
