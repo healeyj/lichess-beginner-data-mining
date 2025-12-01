@@ -8,6 +8,8 @@ import io
 import re
 import sys
 
+# TODO: investigate 0 p-values: is that due to rounding, or is something wonky happening?
+
 # --- Configuration ---
 INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_results.csv'
 OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_results.csv'
@@ -207,7 +209,6 @@ def run_correlation_analysis(df: pd.DataFrame):
 
     plt.xlim(15, 400) 
     
-    # UPDATED: Added P-value to the title
     plt.title(
         f'Games Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_games:.4f} (p-value: {p_value_games:.4f})', 
         fontsize=14
@@ -237,27 +238,27 @@ def run_correlation_analysis(df: pd.DataFrame):
         y='Rating_Change', 
         data=df, 
         scatter_kws={'alpha': 0.3, 's': 15}, 
-        line_kws={'color': '#1f77b4', 'linewidth': 2} # New color for differentiation
+        line_kws={'color': 'darkgreen', 'linewidth': 2} # Use a different color for differentiation
     )
-
-    plt.xlim(0, 31) # Limit X-axis to the days in the month (1-31)
     
-    # UPDATED: Added P-value to the title
+    # Set x-limits appropriate for Days Played (1 to 31)
+    plt.xlim(0, 31) 
+    
     plt.title(
         f'Days Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_days:.4f} (p-value: {p_value_days:.4f})', 
         fontsize=14
     )    
-    plt.xlabel('Days Played in January (X)')
+    plt.xlabel('Number of Days Played in January (X)')
     plt.ylabel('Rating Change (Latest RATING - Earliest RATING) (Y)')
-    plt.axhline(0, color='gray', linestyle='--', linewidth=1) 
+    plt.axhline(0, color='red', linestyle='--', linewidth=1) 
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.tight_layout()
     
     try:
-        plt.savefig(OUTPUT_DAYS_PLOT_PATH)
-        print(f"✅ Days visualization saved to: {OUTPUT_DAYS_PLOT_PATH}")
+        plt.savefig(OUTPUT_DAYS_PLOT_PATH) 
+        print(f"✅ Days distribution visualization (Scatter Plot) saved to: {OUTPUT_DAYS_PLOT_PATH}")
     except Exception as e:
-        print(f"Error saving Days plot: {e}")
+        print(f"Error saving Days scatter plot: {e}")
         
     plt.close()
 
@@ -276,11 +277,26 @@ def run_correlation_analysis(df: pd.DataFrame):
         ax=ax1,
     )
     
-    # UPDATED: Added N and P-value to the title
+    # --- Regression Line for Games Bins ---
+    x_indices_games = np.arange(len(grouped_games_analysis))
+    y_values_games = grouped_games_analysis['Average_Rating_Gain']
+    slope_games, intercept_games = np.polyfit(x_indices_games, y_values_games, 1)
+    regression_line_games = slope_games * x_indices_games + intercept_games
+
+    reg_plot_games = ax1.plot(
+        x_indices_games, 
+        regression_line_games, 
+        color='red', 
+        linestyle='-', 
+        linewidth=2, 
+        label=f'Linear Trend (r={grouped_correlation_games:.4f})'
+    )
+    # ---------------------------------------------
+    
     ax1.set_title(
-        f'Rating Change vs. Games Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players \nGrouped Pearson r: {grouped_correlation_games:.4f} (p-value: {grouped_p_value_games:.4f})', 
+        f'Rating Change vs. Games Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nGrouped Pearson r: {grouped_correlation_games:.4f} (p-value: {grouped_p_value_games:.4f})', 
         fontsize=14, 
-        y=1.05 # Adjusted y for multiline title
+        y=1.05
     )
     
     ax1.set_xlabel('Games Played Group (Volume)')
@@ -330,7 +346,7 @@ def run_correlation_analysis(df: pd.DataFrame):
         )
         
     bar_legend = [plt.Rectangle((0,0),1,1, fc=sns.color_palette('viridis')[0])]
-    ax1.legend(bar_legend + line_plot, ['Rating Change', 'Player Count (N)'], loc='upper center')
+    ax1.legend(bar_legend + line_plot + reg_plot_games, ['Rating Change (Avg)', 'Player Count (N)', 'Linear Trend'], loc='upper center')
     
     fig.tight_layout() 
     
@@ -355,11 +371,26 @@ def run_correlation_analysis(df: pd.DataFrame):
         ax=ax1,
     )
     
-    # UPDATED: Added N and P-value to the title
+    # --- Regression Line for Days Bins ---
+    x_indices_days = np.arange(len(grouped_days_analysis))
+    y_values_days = grouped_days_analysis['Average_Rating_Gain']
+    slope_days, intercept_days = np.polyfit(x_indices_days, y_values_days, 1)
+    regression_line_days = slope_days * x_indices_days + intercept_days
+
+    reg_plot_days = ax1.plot(
+        x_indices_days, 
+        regression_line_days, 
+        color='red', 
+        linestyle='-', 
+        linewidth=2, 
+        label=f'Linear Trend (r={grouped_correlation_days:.4f})'
+    )
+    # ---------------------------------------------
+
     ax1.set_title(
-        f'Rating Change vs. Days Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players \nGrouped Pearson r: {grouped_correlation_days:.4f} (p-value: {grouped_p_value_days:.4f})', 
+        f'Rating Change vs. Days Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nGrouped Pearson r: {grouped_correlation_days:.4f} (p-value: {grouped_p_value_days:.4f})', 
         fontsize=14, 
-        y=1.05 # Adjusted y for multiline title
+        y=1.05
     )
     
     ax1.set_xlabel('Days Played Group (Volume)')
@@ -409,7 +440,7 @@ def run_correlation_analysis(df: pd.DataFrame):
         )
         
     bar_legend = [plt.Rectangle((0,0),1,1, fc=sns.color_palette('magma')[0])]
-    ax1.legend(bar_legend + line_plot, ['Rating Change', 'Player Count (N)'], loc='upper center')
+    ax1.legend(bar_legend + line_plot + reg_plot_days, ['Rating Change (Avg)', 'Player Count (N)', 'Linear Trend'], loc='upper center')
     
     fig.tight_layout() 
     
