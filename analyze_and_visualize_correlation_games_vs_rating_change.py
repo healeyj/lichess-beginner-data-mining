@@ -6,20 +6,20 @@ from scipy.stats import pearsonr
 import os
 import io
 import re
+import sys
 
 # TODO: add visualization of pearson correlation of bins
 
-
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY_players_max_rating_1600_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY__players_max_rating_1600_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY__players_max_rating_1600_correlation_games_vs_rating_change.png'
-OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY__players_max_rating_1600_correlation_rating_gain_by_bin.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_rating_gain_by_bin.png'
 
+MIN_RATING_FILTER = 801
 MAX_RATING_FILTER = 1600
 
-
-# Define bins for the grouped analysis (Suggestion 3)
+# Define bins for the grouped analysis
 # These bins should start at MIN_GAMES_JANUARY (e.g., 15)
 GAME_BINS = [15, 50, 100, 150, 200, 250, 300, 350, 400, np.inf]
 BIN_LABELS = ['15-50 Games', '51-100 Games', '101-150 Games', '151-200 Games', '201-250 Games', '251-300 Games', '301-350 Games', '350-400 Games', '401+ Games']
@@ -34,6 +34,16 @@ def run_correlation_analysis(df: pd.DataFrame):
     
     # 1. Prepare Data: Calculate the key dependent variable
     df['Rating_Change'] = df['Latest_RATING'] - df['Earliest_RATING']
+    
+    # --- NEW: Filter the data based on both min and max earliest rating ---
+    #df = df[
+    #    (df['Earliest_RATING'] >= MIN_RATING_FILTER) & 
+    #    (df['Earliest_RATING'] < MAX_RATING_FILTER)
+    #].copy()
+    
+    if df.empty:
+        print("ERROR: Filtering resulted in an empty DataFrame. Cannot run analysis.")
+        return
     
     # ----------------------------------------------------
     # ANALYSIS METHOD 1: PEARSON CORRELATION (Linear Test on Raw Data)
@@ -110,6 +120,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     results_df.to_csv(OUTPUT_CSV_PATH, index=False, float_format='%.4f')
     print(f"\n✅ Analysis results saved to: {OUTPUT_CSV_PATH}")
 
+    RATING_RANGE_STR = f"Rating Range: {MIN_RATING_FILTER} - {MAX_RATING_FILTER}"
 
     # ----------------------------------------------------
     # ANALYSIS METHOD 2: SCATTER PLOT WITH REGRESSION LINE
@@ -132,7 +143,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     
     # --- DYNAMICALLY UPDATED SCATTER PLOT TITLE ---
     plt.title(
-        f'Games Played vs. Rating Change (Beginner Group, Max Rating < {MAX_RATING_FILTER}) | N={len(df)} Players\nRaw Pearson r: {correlation:.4f}', 
+        f'Games Played vs. Rating Change ({RATING_RANGE_STR}) | N={len(df)} Players\nRaw Pearson r: {correlation:.4f}', 
         fontsize=14
     )    
     plt.xlabel('Total Games Played in January (X)')
@@ -166,9 +177,7 @@ def run_correlation_analysis(df: pd.DataFrame):
         # label='Avg Rating Gain' # Labels will be added using fig.legend
     )
     
-    # --- DYNAMICALLY UPDATED BAR PLOT TITLE ---
-    ax1.set_title(f'Average Rating Change and Sample Size by Games Played Volume (Max Rating < {MAX_RATING_FILTER})', fontsize=14)
-    # ------------------------------
+    ax1.set_title(f'Average Rating Change and Sample Size by Games Played Volume ({RATING_RANGE_STR})', fontsize=14)
     
     ax1.set_xlabel('Games Played Group (Volume)')
     ax1.set_ylabel('Average Glicko-2 Rating Gain (Latest - Earliest)', color=sns.color_palette('viridis')[0])
@@ -239,8 +248,8 @@ if __name__ == '__main__':
     
     # Check if the input file exists, otherwise create mock data
     if not os.path.exists(INPUT_CSV_PATH):
-        print("ERROR: Input CSV not found, proceeding with mock data.")
-        df_data = create_mock_data(INPUT_CSV_PATH)
+        print("ERROR: Input CSV not found, please rerun with a valid input file.")
+        sys.exit()
     else:
         try:
             df_data = pd.read_csv(INPUT_CSV_PATH)

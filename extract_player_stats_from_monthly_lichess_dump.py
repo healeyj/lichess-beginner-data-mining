@@ -12,10 +12,9 @@ from datetime import datetime
 # sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
 
 # CRITICAL
-# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating. set the intial MIN_RATING to 0 and MAX_RATING to 800
+# TODO: for each player, count number of days played (max possible should be about 30, is there correlation between skill and days played?)
 #
 # IMPORTANT
-# TODO: for each player, count number of days played (max possible should be about 30, is there correlation between skill and days played?)
 #
 # NICE TO HAVE
 # TODO: write a new script accordingly to track players across january and february
@@ -24,15 +23,15 @@ from datetime import datetime
 
 # --- CONFIG ---
 # '/Users/healeyj/Desktop/lichess-extracts/
-ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess-beginner-data-mining/lichess_db_standard_rated_2024-01_rapid_subset.pgn.zst'
-OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_results.csv'
+ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01_rapid_subset.pgn.zst'
+OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_results.csv'
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
-MAX_RATING = 1600 # Glicko-2 rating, where 1500 is players' initially assigned rating
-MIN_GAMES_JANUARY = 15 # january grinders to find initial sample
-                        # but for rest of the year, must play at least 1 game every 2 months
-                        # and at least 50 or 100 games total
+MAX_RATING = 1600 # Glicko-2 rating
+MIN_RATING = 801
+
+MIN_GAMES_JANUARY = 15
 TARGET_SAMPLE_SIZE = 5000
 
 # --- REGEX PGN PARSING HELPERS ---
@@ -73,6 +72,9 @@ def run_player_filter_and_sampling():
     Scans the Lichess ZST file, filters games, aggregates player stats, 
     and generates a random sample of active low-RATING players.
     """
+    # Use the global rating range configuration
+    global MIN_RATING, MAX_RATING
+    
     if not os.path.exists(ZST_FILE_PATH):
         print(f"ERROR: File not found at '{ZST_FILE_PATH}'")
         print("Please check the file path and ensure the name is correct.")
@@ -144,9 +146,16 @@ def run_player_filter_and_sampling():
                             except ValueError:
                                 pass
                             
+                            # A game qualifies if at least one player's rating is within the [MIN_RATING, MAX_RATING] range.
+                            is_white_in_range = (white_rating is not None and
+                                                 white_rating >= MIN_RATING and
+                                                 white_rating <= MAX_RATING)
                             
-                            is_low_rating_game = (white_rating is not None and white_rating <= MAX_RATING) or \
-                                                 (black_rating is not None and black_rating <= MAX_RATING)
+                            is_black_in_range = (black_rating is not None and
+                                                 black_rating >= MIN_RATING and
+                                                 black_rating <= MAX_RATING)
+
+                            is_low_rating_game = is_white_in_range or is_black_in_range
                             
                             if is_low_rating_game and game_dt is not None: # Check if timestamp is valid
                                 white_player = current_game.get('White')
@@ -241,8 +250,15 @@ def run_player_filter_and_sampling():
                     except ValueError:
                         pass
                     
-                    is_low_rating_game = (white_rating is not None and white_rating <= MAX_RATING) or \
-                                         (black_rating is not None and black_rating <= MAX_RATING)
+                    is_white_in_range = (white_rating is not None and
+                                         white_rating >= MIN_RATING and
+                                         white_rating <= MAX_RATING)
+                    
+                    is_black_in_range = (black_rating is not None and
+                                         black_rating >= MIN_RATING and
+                                         black_rating <= MAX_RATING)
+
+                    is_low_rating_game = is_white_in_range or is_black_in_range
                     
                     if is_low_rating_game and game_dt is not None:
                         white_player = current_game.get('White')
