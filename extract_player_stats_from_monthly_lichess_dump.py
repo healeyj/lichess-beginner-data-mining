@@ -12,12 +12,12 @@ from datetime import datetime
 # sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
 
 # CRITICAL
-# TODO: for each player, count number of days played (max possible should be about 30, is there correlation between skill and days played?)
+# TODO: for each player, count number of days played (max possible should be about 30)
 #
 # IMPORTANT
 #
 # NICE TO HAVE
-# TODO: write a new script accordingly to track players across january and february
+# TODO: write a new script accordingly to track players across january and february (and so on...)
 #           input: result playerlist and stats for january, full february dataset
 #           output: result playerlist and stats for februrary dataset           
 
@@ -28,8 +28,8 @@ OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
-MAX_RATING = 1600 # Glicko-2 rating
-MIN_RATING = 801
+MIN_RATING = 801 # Glicko-2 rating
+MAX_RATING = 1600 
 
 MIN_GAMES_JANUARY = 15
 TARGET_SAMPLE_SIZE = 5000
@@ -92,6 +92,7 @@ def run_player_filter_and_sampling():
         'latest_time': datetime(1900, 1, 1),   # Initialize to a past date
         'earliest_rating': 0,
         'latest_rating': 0,
+        'days_played': set(), 
     })
     
     current_game = {}
@@ -168,11 +169,14 @@ def run_player_filter_and_sampling():
                                     stats['min_rating'] = min(stats['min_rating'], white_rating)
                                     stats['max_rating'] = max(stats['max_rating'], white_rating)
                                     
-                                    # 4. NEW: Update for Average
+                                    # Update for Average
                                     stats['rating_sum'] += white_rating
                                     stats['rating_count'] += 1
                                     
-                                    # 4. NEW: Update for Earliest/Latest
+                                    # Track unique days played
+                                    stats['days_played'].add(game_dt.date())
+                                    
+                                    # Update for Earliest/Latest
                                     if game_dt < stats['earliest_time']:
                                         stats['earliest_time'] = game_dt
                                         stats['earliest_rating'] = white_rating
@@ -187,11 +191,14 @@ def run_player_filter_and_sampling():
                                     stats['min_rating'] = min(stats['min_rating'], black_rating)
                                     stats['max_rating'] = max(stats['max_rating'], black_rating)
                                     
-                                    # 4. NEW: Update for Average
+                                    # Update for Average
                                     stats['rating_sum'] += black_rating
                                     stats['rating_count'] += 1
                                     
-                                    # 4. NEW: Update for Earliest/Latest
+                                    # Track unique days played
+                                    stats['days_played'].add(game_dt.date())
+                                    
+                                    # Update for Earliest/Latest
                                     if game_dt < stats['earliest_time']:
                                         stats['earliest_time'] = game_dt
                                         stats['earliest_rating'] = black_rating
@@ -271,6 +278,7 @@ def run_player_filter_and_sampling():
                             stats['max_rating'] = max(stats['max_rating'], white_rating)
                             stats['rating_sum'] += white_rating
                             stats['rating_count'] += 1
+                            stats['days_played'].add(game_dt.date())
                             if game_dt < stats['earliest_time']:
                                 stats['earliest_time'] = game_dt
                                 stats['earliest_rating'] = white_rating
@@ -285,6 +293,7 @@ def run_player_filter_and_sampling():
                             stats['max_rating'] = max(stats['max_rating'], black_rating)
                             stats['rating_sum'] += black_rating
                             stats['rating_count'] += 1
+                            stats['days_played'].add(game_dt.date()) # Track unique days played
                             if game_dt < stats['earliest_time']:
                                 stats['earliest_time'] = game_dt
                                 stats['earliest_rating'] = black_rating
@@ -333,7 +342,7 @@ def run_player_filter_and_sampling():
 
     # Prepare data for output file
     output_lines = [
-        "Username,Total_Games_January,Min_RATING_January,Max_RATING_January,Average_RATING,Earliest_RATING,Latest_RATING"
+        "Username,Total_Games_January,Min_RATING_January,Max_RATING_January,Average_RATING,Days_Played,Earliest_RATING,Latest_RATING"
     ]
     
     for username in final_player_sample_keys:
@@ -341,6 +350,9 @@ def run_player_filter_and_sampling():
         
         # Calculate Average Rating
         average_rating = round(stats['rating_sum'] / stats['rating_count']) if stats['rating_count'] > 0 else 0
+        
+        # Calculate Days Played (the size of the unique set of dates)
+        days_played = len(stats['days_played'])
         
         # Clean up ratings for output (guaranteed to be valid integers at this point)
         min_rating = int(stats['min_rating'])
@@ -350,7 +362,7 @@ def run_player_filter_and_sampling():
 
         # Format line with all new data points
         line = (f"{username},{stats['games']},{min_rating},{max_rating},{average_rating},"
-                f"{earliest_rating},{latest_rating}")
+                f"{days_played},{earliest_rating},{latest_rating}") # ADDED days_played
         output_lines.append(line)
 
 
