@@ -1,7 +1,7 @@
 Metric,Value,Interpretation,Games_Played,Player_Count,Days_Played
-Pearson R (Games),0.0797,Strength of linear relationship between games played and rating gain.,,,
+Pearson R (Games),0.0797,Strength of linear relationship between games played and rating change.,,,
 P-Value (Games),0.0000,P-Value < 0.05 indicates the correlation is statistically significant.,,,
-Pearson R (Days),0.1641,Strength of linear relationship between days played and rating gain.,,,
+Pearson R (Days),0.1641,Strength of linear relationship between days played and rating change.,,,
 P-Value (Days),0.0000,P-Value < 0.05 indicates the correlation is statistically significant.,,,
 15-50 Games,-28.3116,Average rating change within defined game volume groups.,27.3330,2901.0000,
 51-100 Games,-19.3308,Average rating change within defined game volume groups.,70.0515,1185.0000,
@@ -12,13 +12,13 @@ P-Value (Days),0.0000,P-Value < 0.05 indicates the correlation is statistically 
 301-350 Games,-64.7037,Average rating change within defined game volume groups.,317.9630,27.0000,
 350-400 Games,-28.2857,Average rating change within defined game volume groups.,376.1429,14.0000,
 401+ Games,15.1064,Average rating change within defined game volume groups.,544.9149,47.0000,
-1-5 Days,-79.5258,Average rating change within defined days played groups.,,445.0000,3.1101
-6-10 Days,-34.1966,Average rating change within defined days played groups.,,1241.0000,7.0814
-11-15 Days,-22.7852,Average rating change within defined days played groups.,,1178.0000,11.8098
-16-20 Days,-8.1115,Average rating change within defined days played groups.,,852.0000,16.8369
-21-25 Days,5.6299,Average rating change within defined days played groups.,,589.0000,21.8183
-26-30+ Days,15.1727,Average rating change within defined days played groups.,,695.0000,27.9727
+1-5 Days,-79.5258,Rating change within defined days played groups.,,445.0000,3.1101
+6-10 Days,-34.1966,Rating change within defined days played groups.,,1241.0000,7.0814
+11-15 Days,-22.7852,Rating change within defined days played groups.,,1178.0000,11.8098
+16-20 Days,-8.1115,Rating change within defined days played groups.,,852.0000,16.8369
+21-25 Days,5.6299,Rating change within defined days played groups.,,589.0000,21.8183
+26-30+ Days,15.1727,Rating change within defined days played groups.,,695.0000,27.9727
 Grouped Pearson R (Games Bins),0.0953,Strength of linear relationship between average games played and average rating gain across the binned groups.,,,
 Grouped P-Value (Games Bins),0.8074,P-Value < 0.05 indicates the grouped correlation is statistically significant.,,,
-Grouped Pearson R (Days Bins),0.9367,Strength of linear relationship between average days played and average rating gain across the binned groups.,,,
+Grouped Pearson R (Days Bins),0.9367,Strength of linear relationship between average days played and average rating change across the binned groups.,,,
 Grouped P-Value (Days Bins),0.0059,P-Value < 0.05 indicates the grouped correlation is statistically significant.,,,

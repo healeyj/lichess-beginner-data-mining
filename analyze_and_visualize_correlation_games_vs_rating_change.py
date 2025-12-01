@@ -8,18 +8,16 @@ import io
 import re
 import sys
 
-# TODO: add visualization of pearson correlation of bins
-
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_games_vs_rating_change.png'
-OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_bin.png'
-OUTPUT_DAYS_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_days_vs_rating_change.png'
-OUTPUT_DAYS_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_days_bin.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_rating_gain_by_bin.png'
+OUTPUT_DAYS_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_days_vs_rating_change.png'
+OUTPUT_DAYS_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_rating_gain_by_days_bin.png'
 
-MIN_RATING_FILTER = 0
-MAX_RATING_FILTER = 800
+MIN_RATING_FILTER = 801
+MAX_RATING_FILTER = 1600
 
 # Define bins for the grouped analysis (Games Played)
 GAME_BINS = [15, 50, 100, 150, 200, 250, 300, 350, 400, np.inf]
@@ -45,18 +43,15 @@ def run_correlation_analysis(df: pd.DataFrame):
         print("FATAL ERROR: The required column 'Days_Played' is missing from the input CSV.")
         return
         
-    # --- NEW: Filter the data based on both min and max earliest rating ---
-    #df = df[
-    #    (df['Earliest_RATING'] >= MIN_RATING_FILTER) & 
-    #    (df['Earliest_RATING'] < MAX_RATING_FILTER)
-    #].copy()
-    
     if df.empty:
         print("ERROR: Filtering resulted in an empty DataFrame. Cannot run analysis.")
         return
         
     # Reusable Rating Range String for Titles
     RATING_RANGE_STR = f"Rating Range: {MIN_RATING_FILTER} - {MAX_RATING_FILTER}"
+    
+    # Total number of players for titles
+    TOTAL_PLAYERS_N = len(df)
 
 
     # ----------------------------------------------------
@@ -212,8 +207,9 @@ def run_correlation_analysis(df: pd.DataFrame):
 
     plt.xlim(15, 400) 
     
+    # UPDATED: Added P-value to the title
     plt.title(
-        f'Games Played vs. Rating Change ({RATING_RANGE_STR}) | N={len(df)} Players\nRaw Pearson r: {correlation_games:.4f}', 
+        f'Games Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_games:.4f} (p-value: {p_value_games:.4f})', 
         fontsize=14
     )    
     plt.xlabel('Total Games Played in January (X)')
@@ -246,8 +242,9 @@ def run_correlation_analysis(df: pd.DataFrame):
 
     plt.xlim(0, 31) # Limit X-axis to the days in the month (1-31)
     
+    # UPDATED: Added P-value to the title
     plt.title(
-        f'Days Played vs. Rating Change ({RATING_RANGE_STR}) | N={len(df)} Players\nRaw Pearson r: {correlation_days:.4f}', 
+        f'Days Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_days:.4f} (p-value: {p_value_days:.4f})', 
         fontsize=14
     )    
     plt.xlabel('Days Played in January (X)')
@@ -279,7 +276,12 @@ def run_correlation_analysis(df: pd.DataFrame):
         ax=ax1,
     )
     
-    ax1.set_title(f'Rating Change vs. Games Played ({RATING_RANGE_STR})', fontsize=14)
+    # UPDATED: Added N and P-value to the title
+    ax1.set_title(
+        f'Rating Change vs. Games Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players \nGrouped Pearson r: {grouped_correlation_games:.4f} (p-value: {grouped_p_value_games:.4f})', 
+        fontsize=14, 
+        y=1.05 # Adjusted y for multiline title
+    )
     
     ax1.set_xlabel('Games Played Group (Volume)')
     ax1.set_ylabel('Glicko-2 Rating Change (Latest - Earliest)', color=sns.color_palette('viridis')[0])
@@ -304,6 +306,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     ax2.tick_params(axis='y', labelcolor='blue')
     ax2.grid(False) 
 
+    # Annotate player count N on the line plot
     for index, row in grouped_games_analysis.iterrows():
         ax2.text(
             index, 
@@ -313,6 +316,7 @@ def run_correlation_analysis(df: pd.DataFrame):
             ha="center"
         )
     
+    # Annotate average rating gain on the bar plot
     for index, row in grouped_games_analysis.iterrows():
         offset = ax1.get_ylim()[1] * 0.02
         y_pos = row['Average_Rating_Gain'] + offset
@@ -351,7 +355,12 @@ def run_correlation_analysis(df: pd.DataFrame):
         ax=ax1,
     )
     
-    ax1.set_title(f'Rating Change vs. Days Played ({RATING_RANGE_STR})', fontsize=14)
+    # UPDATED: Added N and P-value to the title
+    ax1.set_title(
+        f'Rating Change vs. Days Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players \nGrouped Pearson r: {grouped_correlation_days:.4f} (p-value: {grouped_p_value_days:.4f})', 
+        fontsize=14, 
+        y=1.05 # Adjusted y for multiline title
+    )
     
     ax1.set_xlabel('Days Played Group (Volume)')
     ax1.set_ylabel('Glicko-2 Rating Change (Latest - Earliest)', color=sns.color_palette('magma')[0])
@@ -376,6 +385,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     ax2.tick_params(axis='y', labelcolor='blue')
     ax2.grid(False) 
 
+    # Annotate player count N on the line plot
     for index, row in grouped_days_analysis.iterrows():
         ax2.text(
             index, 
@@ -385,6 +395,7 @@ def run_correlation_analysis(df: pd.DataFrame):
             ha="center"
         )
     
+    # Annotate average rating gain on the bar plot
     for index, row in grouped_days_analysis.iterrows():
         offset = ax1.get_ylim()[1] * 0.02
         y_pos = row['Average_Rating_Gain'] + offset
