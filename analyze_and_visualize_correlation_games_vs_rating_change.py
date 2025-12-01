@@ -8,18 +8,16 @@ import io
 import re
 import sys
 
-# TODO: investigate 0 p-values: is that due to rounding, or is something wonky happening?
-
 # --- Configuration ---
-INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_games_vs_rating_change.png'
-OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_rating_gain_by_bin.png'
-OUTPUT_DAYS_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_days_vs_rating_change.png'
-OUTPUT_DAYS_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_correlation_rating_gain_by_days_bin.png'
+INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_results.csv'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_bin.png'
+OUTPUT_DAYS_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_days_vs_rating_change.png'
+OUTPUT_DAYS_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_days_bin.png'
 
-MIN_RATING_FILTER = 801
-MAX_RATING_FILTER = 1600
+MIN_RATING_FILTER = 0
+MAX_RATING_FILTER = 800
 
 # Define bins for the grouped analysis (Games Played)
 GAME_BINS = [15, 50, 100, 150, 200, 250, 300, 350, 400, np.inf]
@@ -28,6 +26,12 @@ BIN_LABELS = ['15-50 Games', '51-100 Games', '101-150 Games', '151-200 Games', '
 # Bins for days played
 DAYS_BINS = [0, 5, 10, 15, 20, 25, np.inf]
 DAYS_BIN_LABELS = ['1-5 Days', '6-10 Days', '11-15 Days', '16-20 Days', '21-25 Days', '26-30+ Days']
+
+# Helper function for p-value formatting
+def format_p_value(p_value):
+    if p_value < 0.001:
+        return "p < 0.001"
+    return f"p-value: {p_value:.4f}"
 
 # --- Analysis Function ---
 
@@ -74,7 +78,7 @@ def run_correlation_analysis(df: pd.DataFrame):
         ]
     })
     
-    print(f"Raw Pearson Correlation (Games): {correlation_games:.4f} (P-Value: {p_value_games:.4f})")
+    print(f"Raw Pearson Correlation (Games): {correlation_games:.4f} (P-Value: {p_value_games:.4e})")
     
     # ----------------------------------------------------
     # ANALYSIS METHOD 6: PEARSON CORRELATION (Days Played vs. Rating Change)
@@ -90,7 +94,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     ])
     results_df = pd.concat([results_df, days_corr_results], ignore_index=True)
 
-    print(f"Raw Pearson Correlation (Days): {correlation_days:.4f} (P-Value: {p_value_days:.4f})")
+    print(f"Raw Pearson Correlation (Days): {correlation_days:.4f} (P-Value: {p_value_days:.4e})")
 
     # ----------------------------------------------------
     # ANALYSIS METHOD 3: BINNING AND GROUPED AVERAGES (Games Played)
@@ -153,7 +157,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     grouped_correlation_games, grouped_p_value_games = pearsonr(avg_games, avg_gain_games)
 
     print("\n--- Grouped Correlation Analysis (Games Bins) ---")
-    print(f"Grouped Pearson Correlation (Games): {grouped_correlation_games:.4f} (P-Value: {grouped_p_value_games:.4f})")
+    print(f"Grouped Pearson Correlation (Games): {grouped_correlation_games:.4f} (P-Value: {grouped_p_value_games:.4e})")
     
     # Append results to the main results DataFrame
     grouped_corr_results_games = pd.DataFrame([
@@ -174,7 +178,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     grouped_correlation_days, grouped_p_value_days = pearsonr(avg_days, avg_gain_days)
 
     print("\n--- Grouped Correlation Analysis (Days Bins) ---")
-    print(f"Grouped Pearson Correlation (Days): {grouped_correlation_days:.4f} (P-Value: {grouped_p_value_days:.4f})")
+    print(f"Grouped Pearson Correlation (Days): {grouped_correlation_days:.4f} (P-Value: {grouped_p_value_days:.4e})")
     
     # Append results to the main results DataFrame
     grouped_corr_results_days = pd.DataFrame([
@@ -210,7 +214,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     plt.xlim(15, 400) 
     
     plt.title(
-        f'Games Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_games:.4f} (p-value: {p_value_games:.4f})', 
+        f'Games Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_games:.4f} ({format_p_value(p_value_games)})', 
         fontsize=14
     )    
     plt.xlabel('Total Games Played in January (X)')
@@ -245,7 +249,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     plt.xlim(0, 31) 
     
     plt.title(
-        f'Days Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_days:.4f} (p-value: {p_value_days:.4f})', 
+        f'Days Played vs. Rating Change ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nRaw Pearson r: {correlation_days:.4f} ({format_p_value(p_value_days)})', 
         fontsize=14
     )    
     plt.xlabel('Number of Days Played in January (X)')
@@ -294,9 +298,9 @@ def run_correlation_analysis(df: pd.DataFrame):
     # ---------------------------------------------
     
     ax1.set_title(
-        f'Rating Change vs. Games Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nGrouped Pearson r: {grouped_correlation_games:.4f} (p-value: {grouped_p_value_games:.4f})', 
+        f'Rating Change vs. Games Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nGrouped Pearson r: {grouped_correlation_games:.4f} ({format_p_value(grouped_p_value_games)})', 
         fontsize=14, 
-        y=1.05
+        y=1.15
     )
     
     ax1.set_xlabel('Games Played Group (Volume)')
@@ -346,7 +350,14 @@ def run_correlation_analysis(df: pd.DataFrame):
         )
         
     bar_legend = [plt.Rectangle((0,0),1,1, fc=sns.color_palette('viridis')[0])]
-    ax1.legend(bar_legend + line_plot + reg_plot_games, ['Rating Change (Avg)', 'Player Count (N)', 'Linear Trend'], loc='upper center')
+    ax1.legend(
+        bar_legend + line_plot + reg_plot_games, 
+        ['Rating Change (Avg)', 'Player Count (N)', 'Linear Trend'], 
+        loc='upper center',
+        bbox_to_anchor=(0.5, 1.15), # Places the legend above the chart title box
+        ncol=3,
+        frameon=True
+    )
     
     fig.tight_layout() 
     
@@ -388,9 +399,9 @@ def run_correlation_analysis(df: pd.DataFrame):
     # ---------------------------------------------
 
     ax1.set_title(
-        f'Rating Change vs. Days Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nGrouped Pearson r: {grouped_correlation_days:.4f} (p-value: {grouped_p_value_days:.4f})', 
+        f'Rating Change vs. Days Played ({RATING_RANGE_STR}) | N={TOTAL_PLAYERS_N} Players\nGrouped Pearson r: {grouped_correlation_days:.4f} ({format_p_value(grouped_p_value_days)})', 
         fontsize=14, 
-        y=1.05
+        y=1.15
     )
     
     ax1.set_xlabel('Days Played Group (Volume)')
@@ -440,7 +451,14 @@ def run_correlation_analysis(df: pd.DataFrame):
         )
         
     bar_legend = [plt.Rectangle((0,0),1,1, fc=sns.color_palette('magma')[0])]
-    ax1.legend(bar_legend + line_plot + reg_plot_days, ['Rating Change (Avg)', 'Player Count (N)', 'Linear Trend'], loc='upper center')
+    ax1.legend(
+        bar_legend + line_plot + reg_plot_days, 
+        ['Rating Change (Avg)', 'Player Count (N)', 'Linear Trend'], 
+        loc='upper center',
+        bbox_to_anchor=(0.5, 1.15), # Places the legend above the chart title box
+        ncol=3,
+        frameon=True
+    )
     
     fig.tight_layout() 
     
