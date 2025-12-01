@@ -6,11 +6,12 @@ import time
 
 # --- CONFIG ---
 # Input File: The full Lichess monthly PGN dump.
-ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst'
-# Output File: The new, filtered file containing ONLY 900+10 games.
-OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/lichess_db_standard_rated_2024-01_900+10_ONLY.pgn.zst'
-# The specific TimeControl tag value to keep.
-TARGET_TIMECONTROL = "900+10" # 15m+10s rapid games
+ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-02.pgn.zst'
+# Output File: The filtered file containing ONLY the specified time controls.
+OUTPUT_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-02_rapid_subset.pgn.zst'
+
+# The specific TimeControl tag values to keep.
+TARGET_TIMECONTROLS = {"900+10", "600+5", "600+0"} # 15m+10s, 10m+5s, and 10m
 
 # --- REGEX PGN PARSING HELPERS ---
 TAG_RE = re.compile(r'^\[(\w+)\s+"(.+)"\]$')
@@ -37,7 +38,7 @@ def format_time(seconds):
 
 def filter_games_by_time_control():
     """
-    Reads a ZST PGN file, filters for a specific time control, 
+    Reads a ZST PGN file, filters for a set of specific time controls, 
     and writes the matching games to a new ZST PGN file.
     """
     if not os.path.exists(ZST_FILE_PATH):
@@ -45,7 +46,7 @@ def filter_games_by_time_control():
         return
 
     print(f"Starting filter scan of {ZST_FILE_PATH}...")
-    print(f"Target Time Control: **{TARGET_TIMECONTROL}**")
+    print(f"Target Time Controls: **{', '.join(TARGET_TIMECONTROLS)}**")
     
     game_count_total = 0
     game_count_filtered = 0
@@ -83,15 +84,14 @@ def filter_games_by_time_control():
                     line_stripped = line.strip()
                     current_game_lines.append(line)
                     
-                    # 1. Start of a new game ([Event...]) or end of previous game (empty line before [Event])
+                    # 1. Start of a new game ([Event...]) or end of previous game
                     if EVENT_RE.match(line_stripped):
                         
                         # Process the previous game block first (if one exists)
                         if game_count_total > 0:
                             # If the previous game matched the filter, write it out
                             if keep_current_game:
-                                # Join all lines from the previous game and write to the output stream
-                                # The last line of the previous game is an empty line, which separates games.
+                                # Write all lines from the previous game except the [Event] line we just read
                                 text_output_stream.write(''.join(current_game_lines[:-1]))
                                 game_count_filtered += 1
                         
@@ -101,7 +101,7 @@ def filter_games_by_time_control():
                         keep_current_game = False
                         game_count_total += 1
 
-                        # Now extract the first tag ([Event])
+                        # Extract the first tag ([Event])
                         match = TAG_RE.match(line_stripped)
                         if match:
                             tag_name, tag_value = match.groups()
@@ -115,18 +115,17 @@ def filter_games_by_time_control():
                             current_game_metadata[tag_name] = tag_value
                             
                             # CRITICAL CHECK: Check TimeControl tag as soon as it's found
-                            if tag_name == 'TimeControl' and tag_value == TARGET_TIMECONTROL:
+                            # The only change is checking if tag_value is IN the set of target controls
+                            if tag_name == 'TimeControl' and tag_value in TARGET_TIMECONTROLS:
                                 keep_current_game = True
 
                     # 3. Game moves section (begins with "1. ")
                     elif MOVES_START_RE.match(line_stripped):
-                        # The moves line also contains the result, and is followed by a blank line.
+                        # This line is the moves/result line and is typically followed by a blank line.
                         
-                        # If the game passed the filter, write the game and the following blank line
+                        # If the game passed the filter, write the entire block
                         if keep_current_game:
-                            # Write the game header lines that were collected
-                            # Write the move line
-                            # Write the empty line that follows the game block (which is read next iteration)
+                            # Write the game header lines that were collected, the move line, and the trailing blank line
                             text_output_stream.write(''.join(current_game_lines))
                             game_count_filtered += 1
                         
@@ -141,12 +140,12 @@ def filter_games_by_time_control():
                         time_str = format_time(elapsed)
                         print(f"Processed ~{game_count_total:,} games in {time_str} (Line: {line_number:,})...")
 
-                # Process the very last game if the file didn't end with a clean move block
+                # Process the very last game if the file ended mid-block
                 if keep_current_game and current_game_lines:
                     text_output_stream.write(''.join(current_game_lines))
                     game_count_filtered += 1
                 
-                # Close the output text and compression streams to flush the buffer
+                # Close the output streams
                 text_output_stream.close()
                 output_stream.close()
 
@@ -165,8 +164,8 @@ def filter_games_by_time_control():
 
     print(f"\nScan complete in {total_time_str}.")
     print(f"Total games processed: {game_count_total:,}")
-    print(f"Games saved (TimeControl **{TARGET_TIMECONTROL}**): {game_count_filtered:,}")
-    print(f"\n✅ Filtered file saved to: {OUTPUT_FILE_PATH}")
+    print(f"Games saved (Time Controls: {', '.join(TARGET_TIMECONTROLS)}): {game_count_filtered:,}")
+    print(f"\n✅ Filtered file saved to: **{OUTPUT_FILE_PATH}**")
 
 
 if __name__ == "__main__":

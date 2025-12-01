@@ -12,28 +12,20 @@ from datetime import datetime
 # sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
 
 # CRITICAL
-# TODO: trim extract to include rapid games only
+# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating. set the intial MIN_RATING to 0 and MAX_RATING to 800
 #
 # IMPORTANT
-# TODO: implement rating range (MIN_RATING, MAX_RATING) instead of just max_rating. set the intial MIN_RATING to 0 and MAX_RATING to 800
-# TODO: rerun with 900+10 rapid games only
-# TODO: for each player, calculate spread of days played (latest_time - earliest_time)
-#           then update analysis to get the total average spread and spread by bin.
-#           this way we can verify that it's something reasonable, like at least 10-15. 
-#           less than that may be cocnerning because it's probably not realistic to expect
-#           improvement in a week or less, regardless of how many games were played
-#               
+# TODO: for each player, count number of days played (max possible should be about 30, is there correlation between skill and days played?)
+#
 # NICE TO HAVE
-# TODO: run and save full set of beginner-level players, then from that output file sample 5k players (save time moving forward)
-# TODO: save list of 5k players as a hashmap, so that it is efficient to locate them and rerun the analysis for february and beyond
-# TODO: analyze each time control separately
-# TODO: analyze classical time controls (60m games)s
-# TODO: throw out players that had any game outside their rating range
+# TODO: write a new script accordingly to track players across january and february
+#           input: result playerlist and stats for january, full february dataset
+#           output: result playerlist and stats for februrary dataset           
 
 # --- CONFIG ---
 # '/Users/healeyj/Desktop/lichess-extracts/
-ZST_FILE_PATH = 'lichess-beginner-data-mining/lichess_db_standard_rated_2024-01_900+10_ONLY.pgn.zst' # Jan24 datafile
-OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_900+10_ONLY_players_max_rating_1600_results.csv'
+ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess-beginner-data-mining/lichess_db_standard_rated_2024-01_rapid_subset.pgn.zst'
+OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_max_rating_1600_results.csv'
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
