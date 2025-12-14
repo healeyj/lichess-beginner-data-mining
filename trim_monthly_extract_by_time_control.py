@@ -6,9 +6,9 @@ import time
 
 # --- CONFIG ---
 # Input File: The full Lichess monthly PGN dump.
-ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-02.pgn.zst'
+ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01.pgn.zst'
 # Output File: The filtered file containing ONLY the specified time controls.
-OUTPUT_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-02_rapid_subset.pgn.zst'
+OUTPUT_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01_rapid_subset.pgn.zst'
 
 # The specific TimeControl tag values to keep.
 TARGET_TIMECONTROLS = {"900+10", "600+5", "600+0"} # 15m+10s, 10m+5s, and 10m

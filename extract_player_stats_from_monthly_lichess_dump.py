@@ -7,16 +7,13 @@ import os
 import time
 from datetime import datetime
 
-# Note from Lichess on Glicko-2 ratings: https://lichess.org/page/rating-systems
-# i am counting games that end in disconnect or abandon since they affect rating over time anyways, but i could see an argument against this
-# sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
+'''
+Notes 
+- i am counting games that end in disconnect or abandon since they affect rating over time anyways
+- sometimes players end up outside the target rating range, but i don't throw them out because they started within the target range
+- Lichess note on Glicko-2 ratings: https://lichess.org/page/rating-systems
+'''
 
-# CRITICAL
-# TODO: for each player, count number of days played (max possible should be about 30)
-#
-# IMPORTANT
-#
-# NICE TO HAVE
 # TODO: write a new script accordingly to track players across january and february (and so on...)
 #           input: result playerlist and stats for january, full february dataset
 #           output: result playerlist and stats for februrary dataset           
@@ -24,7 +21,7 @@ from datetime import datetime
 # --- CONFIG ---
 # '/Users/healeyj/Desktop/lichess-extracts/
 ZST_FILE_PATH = '/Users/healeyj/Desktop/lichess-extracts/lichess_db_standard_rated_2024-01_rapid_subset.pgn.zst'
-OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_801-1600_results.csv'
+OUTPUT_FILE_PATH = 'lichess-beginner-data-mining/results/2024_01_rapid_players_rated_801-1600_results.csv'
 TARGET_TIMECONTROL = "600+0" #10m
 ALTERNATE_TIMECONTROL_1 = "600+5" #10m+5s
 ALTERNATE_TIMECONTROL_2 = "900+10" #15m+10s
@@ -124,7 +121,7 @@ def run_player_filter_and_sampling():
                             white_rating = None
                             black_rating = None
                             
-                            # Lichess PGN tags are mislabeled since they use Glicko-2, legacies die hard
+                            # Lichess PGN tags are mislabeled as 'Elo'. They use Glicko-2
                             white_rating_str = current_game.get('WhiteElo') 
                             black_rating_str = current_game.get('BlackElo')
                             

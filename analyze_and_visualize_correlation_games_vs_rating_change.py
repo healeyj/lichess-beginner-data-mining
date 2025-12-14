@@ -10,16 +10,17 @@ import sys
 
 # --- Configuration ---
 INPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_results.csv'
-OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_results.csv'
-OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_games_vs_rating_change.png'
-OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_bin.png'
-OUTPUT_DAYS_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_days_vs_rating_change.png'
-OUTPUT_DAYS_BIN_PLOT_PATH = 'lichess-beginner-data-mining/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_days_bin.png'
+OUTPUT_CSV_PATH = 'lichess-beginner-data-mining/results/2024_01_rapid_players_rated_0-800_correlation_results.csv'
+OUTPUT_PLOT_PATH = 'lichess-beginner-data-mining/results/2024_01_rapid_players_rated_0-800_correlation_games_vs_rating_change.png'
+OUTPUT_BIN_PLOT_PATH = 'lichess-beginner-data-mining/results/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_bin.png'
+OUTPUT_DAYS_PLOT_PATH = 'lichess-beginner-data-mining/results/2024_01_rapid_players_rated_0-800_correlation_days_vs_rating_change.png'
+OUTPUT_DAYS_BIN_PLOT_PATH = 'lichess-beginner-data-mining/results/2024_01_rapid_players_rated_0-800_correlation_rating_gain_by_days_bin.png'
 
 MIN_RATING_FILTER = 0
 MAX_RATING_FILTER = 800
 
 # Define bins for the grouped analysis (Games Played)
+# TODO: these bins need adjustment, since nearly 80% of players play less than 50 games
 GAME_BINS = [15, 50, 100, 150, 200, 250, 300, 350, 400, np.inf]
 BIN_LABELS = ['15-50 Games', '51-100 Games', '101-150 Games', '151-200 Games', '201-250 Games', '251-300 Games', '301-350 Games', '350-400 Games', '401+ Games']
 
@@ -61,7 +62,7 @@ def run_correlation_analysis(df: pd.DataFrame):
 
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 1: PEARSON CORRELATION (Games Played vs. Rating Change)
+    # PEARSON CORRELATION (Games Played vs. Rating Change)
     # ----------------------------------------------------
     games = df['Total_Games_January']
     rating_change = df['Rating_Change']
@@ -81,7 +82,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     print(f"Raw Pearson Correlation (Games): {correlation_games:.4f} (P-Value: {p_value_games:.4e})")
     
     # ----------------------------------------------------
-    # ANALYSIS METHOD 6: PEARSON CORRELATION (Days Played vs. Rating Change)
+    # PEARSON CORRELATION (Days Played vs. Rating Change)
     # ----------------------------------------------------
     Days_Played = df['Days_Played']
     
@@ -97,7 +98,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     print(f"Raw Pearson Correlation (Days): {correlation_days:.4f} (P-Value: {p_value_days:.4e})")
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 3: BINNING AND GROUPED AVERAGES (Games Played)
+    # BINNING AND GROUPED AVERAGES (Games Played)
     # ----------------------------------------------------
     
     # Create the game bins based on the defined thresholds
@@ -122,7 +123,7 @@ def run_correlation_analysis(df: pd.DataFrame):
 
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 7: BINNING AND GROUPED AVERAGES (Days Played)
+    # BINNING AND GROUPED AVERAGES (Days Played)
     # ----------------------------------------------------
     
     # Create the days bins based on the defined thresholds
@@ -147,7 +148,7 @@ def run_correlation_analysis(df: pd.DataFrame):
 
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 5: GROUPED PEARSON CORRELATION (Games Played Bins)
+    # GROUPED PEARSON CORRELATION (Games Played Bins)
     # ----------------------------------------------------
     
     # Correlate the average games played per bin against the average rating change per bin
@@ -168,7 +169,7 @@ def run_correlation_analysis(df: pd.DataFrame):
 
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 8: GROUPED PEARSON CORRELATION (Days Played Bins)
+    # GROUPED PEARSON CORRELATION (Days Played Bins)
     # ----------------------------------------------------
     
     # Correlate the average days played per bin against the average rating change per bin
@@ -197,7 +198,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     # ====================================================
     
     # ----------------------------------------------------
-    # ANALYSIS METHOD 2: SCATTER PLOT (Games Played vs. Rating Change)
+    # SCATTER PLOT (Games Played vs. Rating Change)
     # ----------------------------------------------------
     
     plt.style.use('ggplot')
@@ -232,7 +233,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     plt.close()
     
     # ----------------------------------------------------
-    # ANALYSIS METHOD 6: SCATTER PLOT (Days Played vs. Rating Change)
+    # SCATTER PLOT (Days Played vs. Rating Change)
     # ----------------------------------------------------
     
     plt.figure(figsize=(10, 6))
@@ -268,7 +269,7 @@ def run_correlation_analysis(df: pd.DataFrame):
 
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 4: BAR PLOT (Games Played Groups)
+    # BAR PLOT (Games Played Groups)
     # ----------------------------------------------------
     
     fig, ax1 = plt.subplots(figsize=(12, 6))
@@ -369,7 +370,7 @@ def run_correlation_analysis(df: pd.DataFrame):
     plt.close(fig)
 
     # ----------------------------------------------------
-    # ANALYSIS METHOD 7: BAR PLOT (Days Played Groups)
+    # BAR PLOT (Days Played Groups)
     # ----------------------------------------------------
     
     fig, ax1 = plt.subplots(figsize=(12, 6))
